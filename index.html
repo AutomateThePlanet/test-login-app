@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSO Demo</title>
+    <link href="main.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">HOME</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="resetDatabase()">Reset Database</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1>ChessTV Shows</h1>
+
+
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="authTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="login-tab" data-toggle="tab" href="#loginAuth" role="tab"
+                            aria-controls="loginAuth" aria-selected="true">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="email-tab" data-toggle="tab" href="#emailAuth" role="tab"
+                            aria-controls="emailAuth" aria-selected="false">Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sms-tab" data-toggle="tab" href="#smsAuth" role="tab"
+                            aria-controls="smsAuth" aria-selected="false">SMS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sso-tab" data-toggle="tab" href="#ssoAuth" role="tab"
+                            aria-controls="ssoAuth" aria-selected="false">SSO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="register-tab" data-toggle="tab" href="#registerAuth" role="tab"
+                            aria-controls="registerAuth" aria-selected="false">Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activateAuth" role="tab"
+                            aria-controls="activateAuth" aria-selected="false">Activate</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="resetRequest-tab" data-toggle="tab" href="#passwordResetRequest"
+                            role="tab" aria-controls="passwordResetRequest" aria-selected="false">Request Reset</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="reset-tab" data-toggle="tab" href="#passwordReset" role="tab"
+                            aria-controls="passwordReset" aria-selected="false">Reset Password</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="set-status-tab" data-toggle="tab" href="#setStatusAuth" role="tab"
+                            aria-controls="setStatusAuth" aria-selected="false">Set Status</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="authTabsContent">
+                    <div class="tab-content" id="authTabsContent">
+                        <!-- Login authentication forms -->
+                        <div class="tab-pane show active" id="loginAuth" role="tabpanel" aria-labelledby="login-tab">
+                            <form id="login-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="usernameOrEmail">Username or Email:</label>
+                                    <input type="text" id="usernameOrEmail" placeholder="Username or Email"
+                                        class="form-control" required />
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password:</label>
+                                    <input type="password" id="password" placeholder="Password" class="form-control"
+                                        required />
+                                </div>
+                                <div class="form-group">
+                                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                                    <label for="rememberMe">Remember me</label>
+                                </div>
+                                <div class="form-group" id="2fa-token-group" style="display: none;">
+                                    <label for="twoFaToken">2FA Token:</label>
+                                    <input type="text" id="twoFaToken" placeholder="Enter your 2FA Token" class="form-control"/>
+                                </div>
+                                <label>username = janeDoe pass = password456</label></br>
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </form>
+                        </div>
+
+                        <!-- Email authentication forms -->
+                        <div class="tab-pane fade" id="emailAuth" role="tabpanel" aria-labelledby="email-tab">
+                            <form id="passwordless-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" id="email" name="email" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Send Login Code</button>
+                            </form>
+                            <form id="verify-code-form" class="auth-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="code">Enter Code:</label>
+                                    <input type="text" id="code" name="code" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Verify Code</button>
+                            </form>
+                        </div>
+
+                        <!-- SMS authentication forms -->
+                        <div class="tab-pane fade" id="smsAuth" role="tabpanel" aria-labelledby="sms-tab">
+                            <form id="sms-auth-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="phoneNumber">Phone Number:</label>
+                                    <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Send SMS Code</button>
+                            </form>
+                            <form id="verify-sms-code-form" class="auth-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="smsCode">Enter SMS Code:</label>
+                                    <input type="text" id="smsCode" name="smsCode" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Verify SMS Code</button>
+                            </form>
+                        </div>
+
+                        <!-- SSO authentication forms -->
+                        <div class="tab-pane fade" id="ssoAuth" role="tabpanel" aria-labelledby="sso-tab">
+                            <div class="buttons mb-3">
+                                </br>
+                                <div class="form-group">
+                                    <a href="/auth/google" class="btn btn-danger">Login with Google</a>
+                                    <a href="/auth/facebook" class="btn btn-primary">Login with Facebook</a>
+                                </div>
+                                </br>
+                            </div>
+                        </div>
+
+                        <!-- Registration Form Pane -->
+                        <div class="tab-pane fade" id="registerAuth" role="tabpanel" aria-labelledby="register-tab">
+                            <form id="registration-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="registerUsername">Username:</label>
+                                    <input type="text" id="registerUsername" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerEmail">Email:</label>
+                                    <input type="email" id="registerEmail" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerPhone">Phone:</label>
+                                    <input type="phone" id="registerPhone" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerPassword">Password:</label>
+                                    <input type="password" id="registerPassword" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">Confirm Password:</label>
+                                    <input type="password" id="confirmPassword" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Register</button>
+                            </form>
+                        </div>
+
+                        <!-- Activation Form Pane -->
+                        <div class="tab-pane fade" id="activateAuth" role="tabpanel" aria-labelledby="activate-tab">
+                            <form id="activate-registration-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="activationCode">Activation Code:</label>
+                                    <input type="text" id="activationCode" placeholder="Enter Activation Code"
+                                        class="form-control" required>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="activateUser()">Activate</button>
+
+                            </form>
+                        </div>
+
+                        <!-- rest password -->
+                        <!-- Password Reset Request Form Pane -->
+                        <div class="tab-pane fade" id="passwordResetRequest" role="tabpanel"
+                            aria-labelledby="resetRequest-tab">
+                            <form id="password-reset-request-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="resetEmail">Email:</label>
+                                    <input type="email" id="resetEmail" placeholder="Enter your registered email"
+                                        class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Request Password Reset</button>
+                            </form>
+                        </div>
+
+                        <!-- Password Reset Form Pane -->
+                        <div class="tab-pane fade" id="passwordReset" role="tabpanel" aria-labelledby="reset-tab">
+                            <form id="password-reset-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="newPassword">New Password:</label>
+                                    <input type="password" id="newPassword" placeholder="Enter new password"
+                                        class="form-control" required>
+                                </div>
+                                <input type="hidden" id="resetToken" value="">
+                                <button type="submit" class="btn btn-primary">Reset Password</button>
+                            </form>
+                        </div>
+                        <!-- change status -->
+                        <div class="tab-pane fade" id="setStatusAuth" role="tabpanel" aria-labelledby="set-status-tab">
+                            <form id="set-status-form" class="auth-form mb-3 mt-3">
+                                <div class="form-group">
+                                    <label for="statusEmail">User Email:</label>
+                                    <input type="email" id="statusEmail" placeholder="Enter user email"
+                                        class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userStatus">Set Status:</label>
+                                    <select id="userStatus" class="form-control">
+                                        <option value="active">Active</option>
+                                        <option value="passwordreset">Password Reset</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="tobeactivated">To be Activated</option>
+                                        <option value="bot">Bot</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Set Status</button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+            style="position: fixed; bottom: 50px; left: 50px;">
+            <div class="toast-header">
+                <strong class="mr-auto">Notification</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body" id="toast-body"></div>
+        </div>
+
+        <script src="main.js"></script>
+</body>
+
+</html>

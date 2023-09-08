@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+a {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+a.google {
+    background: #DB4437;
+}
+
+a.facebook {
+    background: #1877F2;
+}
+
+a:hover {
+    filter: brightness(0.9);
+}
+
+.container {
+    padding-top: 80px; /* Adjusts for the height of the navbar */
+}
