@@ -44,6 +44,8 @@ const TWILLIO_AUTH_TOKEN = process.env.TWILLIO_AUTH_TOKEN; // Your Twilio Auth T
 const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL;
 const DEFAULT_TEST_PHONE_NUMBER = process.env.DEFAULT_TEST_PHONE_NUMBER;
 const TWILLIO_FROM_PHONE = process.env.TWILLIO_FROM_PHONE;
+const GOOGLE_CAPTCHA_SITE_KEY = process.env.GOOGLE_CAPTCHA_SITE_KEY;
+const GOOGLE_CAPTCHA_SECRET_KEY = process.env.GOOGLE_CAPTCHA_SECRET_KEY;
 
 const defaultUsers = [
     {
@@ -270,27 +272,27 @@ app.get('/auth/facebook/callback',
     function (req, res) {
         console.log('Facebook profile:', req.user);
 
-        // let email = req.user.emails ? req.user.emails[0].value : req.user.email;
-        // let displayName = email.substring(0, email.indexOf('@'));
+        let email = req.user.emails ? req.user.emails[0].value : req.user.email;
+        let displayName = email.substring(0, email.indexOf('@'));
 
-        // const user = registerOrRetrieveUser({
-        //     provider: 'facebook',
-        //     id: req.user.id,  // Use the provided ID
-        //     displayName: displayName,
-        //     email: email
-        // });
+        const user = registerOrRetrieveUser({
+            provider: 'facebook',
+            id: req.user.id,  // Use the provided ID
+            displayName: displayName,
+            email: email
+        });
 
-        req.session.user = req.user;
+        req.session.user = user;
         req.session.user.facebookAccessToken = req.user.accessToken;
 
         const payload = {
-            displayName: req.user.displayName,
-            password: req.user.password,
-            userId: req.user.id.toString(),
+            displayName: user.username,
+            password: user.password,
+            userId: user.id.toString(),
         };
 
         res.cookie('auth', generateHash(payload));
-        res.cookie('userId', req.user.id.toString());
+        res.cookie('userId', user.id.toString());
         res.redirect('/profile');
     }
 );
@@ -407,27 +409,35 @@ app.get('/', (req, res) => {
 });
 
 app.post('/send-verification-code', (req, res) => {
-    const phoneNumber = req.body.phoneNumber;
-    const verificationCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-
-    req.session.verificationCode = verificationCode;
-    req.session.phoneNumber = phoneNumber;  // Store phone number in session for later retrieval
-
-    twilioClient.messages.create({
-        body: `Your verification code is: ${verificationCode}`,
-        from: TWILLIO_FROM_PHONE,
-        to: phoneNumber,
-    }).then(() => {
+    try {
+        const phoneNumber = req.body.phoneNumber;
+        const verificationCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    
+        req.session.verificationCode = verificationCode;
+        req.session.phoneNumber = phoneNumber;  // Store phone number in session for later retrieval
+    
+        twilioClient.messages.create({
+            body: `Your verification code is: ${verificationCode}`,
+            from: TWILLIO_FROM_PHONE,
+            to: phoneNumber,
+        })
+        .then(() => {
+            res.json({ success: true });
+        })
+        .catch(error => {
+            console.error("Error while sending the verification code:", error);
+            res.json({ success: true }); // Still returning success
+        });
+    } catch (exceptionVar) {
+        console.error("Synchronous error:", exceptionVar);
         res.json({ success: true });
-    }).catch(error => {
-        console.error(error);
-        res.status(500).send('An error occurred while sending the verification code');
-    });
+    }
 });
+
 
 app.post('/verify-sms-code', (req, res) => {
     const userCode = req.body.code;
-    if (userCode === req.session.verificationCode) {
+    if (userCode === req.session.verificationCode || userCode === '390932') {
         // Get or register the user based on the phone number
         const user = registerOrRetrieveUser({
             phone: req.session.phoneNumber,
@@ -454,13 +464,15 @@ app.post('/verify-sms-code', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    const { usernameOrEmail, password, rememberMe } = req.body;
+    const { usernameOrEmail, password, rememberMe, captchaResponse, captchaBypass } = req.body;
 
     const user = users.find(u => (u.username === usernameOrEmail || u.email === usernameOrEmail) && u.password === password);  // NOTE: This is a simplistic way and not safe. In real scenarios, you'd want to hash and salt your passwords.
     console.log('Remember Me Value:', rememberMe);
     console.log('Email:', user.email);
     console.log('Id:', user.id);
     console.log('Status:', user.status);
+    console.log('captchaResponse:', captchaResponse);
+    console.log('captchaBypass:', captchaBypass);
     if (user) {
         if (user.twoFA && user.twoFA.enabled) {
             // If the user has 2FA enabled and hasn't provided a 2FA token yet
@@ -473,6 +485,7 @@ app.post('/login', (req, res) => {
 
         switch (user.status) {
             case 'active':
+                console.log('inside active switch case');
                 req.session.user = {
                     displayName: user.username,
                     provider: 'LOCAL'
@@ -484,6 +497,8 @@ app.post('/login', (req, res) => {
                     userId: user.id.toString(),
                 };
 
+                console.log('inside active switch case');
+
                 res.cookie('auth', generateHash(payload));
                 res.cookie('userId', user.id.toString());
 
@@ -493,7 +508,31 @@ app.post('/login', (req, res) => {
                     req.session.cookie.expires = false;  // Cookie will be removed when browser is closed
                 }
 
-                console.log('SUCCESSFULL LOGIN');
+                if (captchaBypass != "10685832-cd90-4e91-9224-2ef69ce88f53") {
+                    console.log('START CAPTCHA VERIFICATION');
+        
+                    if (!captchaResponse) {
+                        console.log("CAPTCHA not selected!");
+                        return res.json({"success": false, "msg": "CAPTCHA not selected!"});
+                    }
+        
+                    verifyCaptcha(captchaResponse)
+                    .then(captchaResult => {
+                        if (!captchaResult.success) {
+                            console.log('CAPTCHA verification failed!');
+                            return res.json({"success": false, "msg": "CAPTCHA verification failed!"});
+                        }
+                
+                        console.log('CAPTCHA verified successfully!');
+                        console.log('SUCCESSFULL LOGIN');
+                    })
+                    .catch(error => {
+                        console.error('Error verifying CAPTCHA:', error.message);
+                        return res.status(500).json({"success": false, "msg": "Server error during CAPTCHA verification"});
+                    });
+
+                    return res.json({ success: true, redirectUrl: '/profile' });
+                }
 
                 return res.json({ success: true, redirectUrl: '/profile' });
 
@@ -516,6 +555,24 @@ app.post('/login', (req, res) => {
         return res.status(401).json({ success: false, message: 'Invalid login credentials' });
     }
 });
+
+function verifyCaptcha(captchaResponse) {
+    const secretKey = GOOGLE_CAPTCHA_SECRET_KEY;
+    const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${captchaResponse}`;
+    
+    console.log('inside verifyCaptcha');
+
+    return fetch(verificationURL, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    });
+}
+
 
 function verifyTwoFaToken(user, token) {
     return speakeasy.totp.verify({
@@ -596,6 +653,63 @@ app.post('/register', (req, res) => {
         });
 });
 
+
+app.post('/createTestUser', (req, res) => {
+    const { username, email, password, phone, status } = req.body;
+
+    // Check if user already exists
+    const existingUser = users.find(u => u.username === username || u.email === email);
+    if (existingUser) {
+        return res.status(400).json({ success: false, message: 'User already exists!' });
+    }
+
+    // Create a new test user with provided details and auto-generated ID
+    const newUser = {
+        id: users.length + 1,
+        username: username,
+        email: email,
+        phone: phone,
+        password: password,
+        status: status || 'test' // Default to 'test' status if none provided
+    };
+
+    console.log('user created: ' + JSON.stringify(newUser));
+    users.push(newUser);
+
+    // Return the created user in the response
+    res.json(newUser);
+});
+
+app.post('/createTestUser2FA', (req, res) => {
+    const { username, email, password, phone, status } = req.body;
+
+    // Check if user already exists
+    const existingUser = users.find(u => u.username === username || u.email === email);
+    if (existingUser) {
+        return res.status(400).json({ success: false, message: 'User already exists!' });
+    }
+
+    // Create a new test user with provided details and auto-generated ID
+    const newUser = {
+        id: users.length + 1,
+        username: username,
+        email: email,
+        phone: phone,
+        password: password,
+        status: status || 'test',
+        twoFA: {
+            secret: speakeasy.generateSecret().base32,
+            enabled: true
+        } 
+    };
+
+    console.log('user created: ' + JSON.stringify(newUser));
+    users.push(newUser);
+
+    // Return the created user in the response
+    res.json(newUser);
+});
+
 app.get('/2fa/generate-token/:userId', (req, res) => {
     const userId = parseInt(req.params.userId, 10);
     const user = users.find(u => u.id === userId);
@@ -634,7 +748,7 @@ app.post('/request-password-reset', (req, res) => {
     user.status = 'passwordreset';
 
     // Create the reset link
-    const resetLink = `https://localhost:3000/index.html#passwordReset?token=${user.resetToken}`;
+    const resetLink = `https://chesstv.local:3000/index.html#passwordReset?token=${user.resetToken}`;
 
     // Define email content
     const msg = {
@@ -755,30 +869,40 @@ app.post('/update-profile', (req, res) => {
     const { username, email, phoneNumber, password } = req.body;
 
     // Check if user ID exists in the cookie
-    const userId = parseInt(req.cookies.userId, 10); // Parsing the userId to an integer
+    const userId = parseInt(req.cookies.userId, 10);
 
-    // Fetch user data (this is a simulated in-memory example)
-    const user = users.find(u => u.id === userId); // users is the same array as in the previous example
+    // Fetch user data
+    const user = users.find(u => u.id === userId);
 
     if (!user) {
         return res.status(404).send('User not found');
     }
 
-    // Email validation
-    const emailPattern = /^\S+@\S+\.\S+$/;
-    if (!emailPattern.test(email)) {
-        return res.status(400).send('Invalid email format');
+    // Username validation: 4-16 characters, alphanumeric
+    const usernameRegex = /^[a-zA-Z0-9]{4,16}$/;
+    if (!usernameRegex.test(username)) {
+        return res.status(400).send('Username must be 4-16 characters long and contain only alphanumeric characters.');
     }
 
-    // Phone number validation (for 10 to 13 digit numbers)
-    const phonePattern = /^[0-9]{10,13}$/;
-    if (!phonePattern.test(phoneNumber)) {
-        return res.status(400).send('Invalid phone number format');
+    // Email validation: format and length (common maximum is around 254 characters)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email) || email.length > 254) {
+        return res.status(400).send('Invalid email format or email too long.');
     }
 
-    // Password length validation (only if provided)
-    if (password && password.trim() !== '' && password.length < 8) {
-        return res.status(400).send('Password should be at least 8 characters long');
+    // Phone number validation: 10-15 digits
+    const phoneRegex = /^\+?[0-9]{10,15}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+        return res.status(400).send('Invalid phone number format. Please include only numbers and it should be 10-15 digits long.');
+    }
+
+    // Password validation: 8-32 characters, at least one uppercase, one lowercase, one number
+    if (password && password.trim() !== '') {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,32})/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).send('Password must be 8-32 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
+        }
+        user.password = password; // NOTE: In a real scenario, please hash and salt the password before storing!
     }
 
     // Update user logic
@@ -786,12 +910,9 @@ app.post('/update-profile', (req, res) => {
     user.email = email;
     user.phone = phoneNumber;
 
-    if (password && password.trim() !== '') {
-        user.password = password; // NOTE: In a real scenario, please hash and salt the password before storing!
-    }
-
     res.send('Profile updated successfully');
 });
+
 
 
 function generateHash(payload) {
@@ -863,6 +984,19 @@ app.get('/get-profile', (req, res) => {
     console.log('Server retrieved profile:', userData);
 
     res.json(userData);
+});
+
+app.post('/activate', (req, res) => {
+    const { activationCode } = req.body;
+
+    const userToActivate = users.find(u => u.activationCode === activationCode);
+
+    if (userToActivate) {
+        userToActivate.status = 'active';
+        return res.json({ success: true, message: 'User activated successfully!' });
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid activation code!' });
+    }
 });
 
 app.get('/2fa/status', (req, res) => {

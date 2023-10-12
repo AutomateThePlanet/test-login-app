@@ -66,15 +66,10 @@ document.getElementById('sms-auth-form').addEventListener('submit', function (e)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber }),
     })
-        .then(response => response.json())
+       // .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                showToast('Login code has been sent to your phone. Please check your messages.');
-                document.getElementById('sms-auth-form').style.display = 'none';
-                document.getElementById('verify-sms-code-form').style.display = 'block'; // Show the SMS code verification form
-            } else {
-                showToast('Failed to send login code. Please try again.');
-            }
+            document.getElementById('sms-auth-form').style.display = 'none';
+            document.getElementById('verify-sms-code-form').style.display = 'block'; // Show the SMS code verification form
         });
 });
 
@@ -99,6 +94,33 @@ document.getElementById('verify-sms-code-form').addEventListener('submit', funct
         });
 });
 
+// login form
+// document.getElementById('login-form').addEventListener('submit', function (e) {
+//     e.preventDefault();
+
+//     const usernameOrEmail = document.getElementById('usernameOrEmail').value;
+//     const password = document.getElementById('password').value;
+//     const rememberMe = document.getElementById('rememberMe').checked;
+
+//     fetch('/login', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//             usernameOrEmail: usernameOrEmail,
+//             password: password,
+//             rememberMe: rememberMe
+//         }),
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 // Redirect to profile or dashboard
+//                 window.location.href = '/profile';
+//             } else {
+//                 showToast('Invalid login credentials.');
+//             }
+//         });
+// });
 document.getElementById('login-form').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -107,11 +129,15 @@ document.getElementById('login-form').addEventListener('submit', function (e) {
     const rememberMe = document.getElementById('rememberMe').checked;
     const twoFaTokenElement = document.getElementById('twoFaToken');
     const twoFaTokenGroupElement = document.getElementById('2fa-token-group');
-    
+    const captchaResponse = document.querySelector("textarea[name='g-recaptcha-response']").value;
+    const captchaBypass = document.querySelector('[name="captcha-bypass"]').value;
+
     let requestData = {
         usernameOrEmail: usernameOrEmail,
         password: password,
-        rememberMe: rememberMe
+        rememberMe: rememberMe,
+        captchaResponse: captchaResponse,     
+        captchaBypass: captchaBypass        
     };
 
     console.log('email:', usernameOrEmail);
