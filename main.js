@@ -129,7 +129,7 @@ document.getElementById('login-form').addEventListener('submit', function (e) {
     const rememberMe = document.getElementById('rememberMe').checked;
     const twoFaTokenElement = document.getElementById('twoFaToken');
     const twoFaTokenGroupElement = document.getElementById('2fa-token-group');
-    const captchaResponse = document.querySelector("textarea[name='g-recaptcha-response']").value;
+    const captchaResponse = grecaptcha.getResponse();
     const captchaBypass = document.querySelector('[name="captcha-bypass"]').value;
 
     let requestData = {
