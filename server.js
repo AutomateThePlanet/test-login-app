@@ -463,7 +463,7 @@ app.post('/verify-sms-code', (req, res) => {
     }
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { usernameOrEmail, password, rememberMe, captchaResponse, captchaBypass } = req.body;
 
     const user = users.find(u => (u.username === usernameOrEmail || u.email === usernameOrEmail) && u.password === password);  // NOTE: This is a simplistic way and not safe. In real scenarios, you'd want to hash and salt your passwords.
@@ -485,7 +485,6 @@ app.post('/login', (req, res) => {
 
         switch (user.status) {
             case 'active':
-                console.log('inside active switch case');
                 req.session.user = {
                     displayName: user.username,
                     provider: 'LOCAL'
@@ -497,43 +496,42 @@ app.post('/login', (req, res) => {
                     userId: user.id.toString(),
                 };
 
-                console.log('inside active switch case');
-
                 res.cookie('auth', generateHash(payload));
                 res.cookie('userId', user.id.toString());
 
                 if (rememberMe) {
-                    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;  // Set cookie expiration to 30 days
+                    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
                 } else {
-                    req.session.cookie.expires = false;  // Cookie will be removed when browser is closed
+                    req.session.cookie.expires = false;
                 }
 
-                if (captchaBypass != "10685832-cd90-4e91-9224-2ef69ce88f53") {
+                console.log('before captchaBypass');
+                if (captchaBypass !== "10685832-cd90-4e91-9224-2ef69ce88f53") {
                     console.log('START CAPTCHA VERIFICATION');
-        
+
                     if (!captchaResponse) {
+                        console.log('captchaResponse = ' + captchaResponse);
                         console.log("CAPTCHA not selected!");
-                        return res.json({"success": false, "msg": "CAPTCHA not selected!"});
+                        return res.json({ success: false, msg: "CAPTCHA not selected!" });
                     }
-        
-                    verifyCaptcha(captchaResponse)
-                    .then(captchaResult => {
+
+                    try {
+                        const captchaResult = await verifyCaptcha(captchaResponse);
                         if (!captchaResult.success) {
-                            console.log('CAPTCHA verification failed!');
-                            return res.json({"success": false, "msg": "CAPTCHA verification failed!"});
+                            return res.json({ success: false, msg: "CAPTCHA verification failed!" });
                         }
-                
+
                         console.log('CAPTCHA verified successfully!');
                         console.log('SUCCESSFULL LOGIN');
-                    })
-                    .catch(error => {
-                        console.error('Error verifying CAPTCHA:', error.message);
-                        return res.status(500).json({"success": false, "msg": "Server error during CAPTCHA verification"});
-                    });
 
-                    return res.json({ success: true, redirectUrl: '/profile' });
+                        return res.json({ success: true, redirectUrl: '/profile' });
+                    } catch (error) {
+                        console.error('Error verifying CAPTCHA:', error.message);
+                        return res.status(500).json({ success: false, msg: "Server error during CAPTCHA verification" });
+                    }
                 }
 
+                console.log('SUCCESSFULL LOGIN');
                 return res.json({ success: true, redirectUrl: '/profile' });
 
             case 'passwordreset':
@@ -565,12 +563,7 @@ function verifyCaptcha(captchaResponse) {
     return fetch(verificationURL, {
         method: 'POST'
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-    });
+    .then(response => response.json());
 }
 
 
