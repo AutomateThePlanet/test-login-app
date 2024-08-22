@@ -94,33 +94,6 @@ document.getElementById('verify-sms-code-form').addEventListener('submit', funct
         });
 });
 
-// login form
-// document.getElementById('login-form').addEventListener('submit', function (e) {
-//     e.preventDefault();
-
-//     const usernameOrEmail = document.getElementById('usernameOrEmail').value;
-//     const password = document.getElementById('password').value;
-//     const rememberMe = document.getElementById('rememberMe').checked;
-
-//     fetch('/login', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//             usernameOrEmail: usernameOrEmail,
-//             password: password,
-//             rememberMe: rememberMe
-//         }),
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 // Redirect to profile or dashboard
-//                 window.location.href = '/profile';
-//             } else {
-//                 showToast('Invalid login credentials.');
-//             }
-//         });
-// });
 document.getElementById('login-form').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -129,7 +102,7 @@ document.getElementById('login-form').addEventListener('submit', function (e) {
     const rememberMe = document.getElementById('rememberMe').checked;
     const twoFaTokenElement = document.getElementById('twoFaToken');
     const twoFaTokenGroupElement = document.getElementById('2fa-token-group');
-    const captchaResponse = document.querySelector("textarea[name='g-recaptcha-response']").value;
+    const captchaResponse = grecaptcha.getResponse();
     const captchaBypass = document.querySelector('[name="captcha-bypass"]').value;
 
     let requestData = {

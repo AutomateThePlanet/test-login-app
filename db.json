@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "username": "johnDoe",
+    "email": "john@example.com",
+    "password": "password123",
+    "role": "admin",
+    "loginMethod": "local",
+    "provider": "LOCAL",
+    "status": "active",
+    "phone": "00359894534333",
+    "twoFA": {
+      "secret": null,
+      "enabled": false
+    }
+  },
+  {
+    "id": 2,
+    "username": "janeDoe",
+    "email": "jane@example.com",
+    "password": "password456",
+    "role": "user",
+    "loginMethod": "local",
+    "provider": "LOCAL",
+    "status": "tobeactivated",
+    "phone": "00359894534333",
+    "twoFA": {
+      "secret": null,
+      "enabled": false
+    }
+  },
+  {
+    "id": 3,
+    "username": "User532",
+    "email": "57e02f50-15ab-48ff-9054-2b0017620a71@mailslurp.net",
+    "phone": null,
+    "password": "cb3c2e19-610a-40db-92f1-6e0fd7358090",
+    "status": "active",
+    "provider": "Passwordless",
+    "activationCode": null,
+    "twoFA": {
+      "secret": null,
+      "enabled": false
+    }
+  },
+  {
+    "id": 4,
+    "username": "User887",
+    "email": "3ee22719-453a-43e4-b04b-95fe5bfe8da3@mailslurp.net",
+    "phone": null,
+    "password": "cb3c2e19-610a-40db-92f1-6e0fd7358090",
+    "status": "active",
+    "provider": "Passwordless",
+    "activationCode": null,
+    "twoFA": {
+      "secret": null,
+      "enabled": false
+    }
+  },
+  {
+    "id": 5,
+    "username": "Ezequiel60657",
+    "email": "6a0c10f9-d67b-44ef-86a8-266c83239131@mailslurp.world",
+    "phone": "+13135137320",
+    "password": "9QgomWa866Aa",
+    "status": "active",
+    "activationCode": "MMU0HF"
+  },
+  {
+    "id": 6,
+    "username": "Abby81236",
+    "email": "183c5972-9116-45ad-8acb-4cc02cb0c459@mailslurp.biz",
+    "phone": "+13135137320",
+    "password": "S2Ib1hsEjuAa",
+    "status": "active",
+    "activationCode": "XGQ7X6"
+  },
+  {
+    "id": 7,
+    "username": "Eli23735",
+    "email": "848021cc-f499-4ba7-835e-e4479d398889@mailslurp.biz",
+    "phone": "+13135137320",
+    "password": "sBNz54nXTmAa",
+    "status": "active",
+    "activationCode": "QDAN7D"
+  },
+  {
+    "id": 8,
+    "username": "Ike28415",
+    "email": "615f4754-e331-414c-bde4-e42339a78a3c@mailslurp.world",
+    "phone": "+13135137320",
+    "password": "vzcv2LcojtAa",
+    "status": "active",
+    "activationCode": "K2Y7BQ"
+  },
+  {
+    "id": 9,
+    "username": "Willie98360",
+    "email": "4c637166-a893-48e4-8ec6-b3fc03ad8e6b@mailslurp.xyz",
+    "phone": "+13135137320",
+    "password": "m7u4fOtrhDAa",
+    "status": "active",
+    "activationCode": "HKGQQZ"
+  },
+  {
+    "id": 10,
+    "username": "Lafayette61",
+    "email": "2e1ba36f-e8cc-40c3-89b6-917f5e847609@mailslurp.net",
+    "phone": "+13135137320",
+    "password": "yR5jOGyvnWAa",
+    "status": "pending"
+  },
+  {
+    "id": 11,
+    "username": "Jaylan.Dare98",
+    "email": "80733290-bb07-4b48-bcf6-9623add86813@mailslurp.net",
+    "phone": "+13135137320",
+    "password": "kv5zuxGaAEAa",
+    "status": "active",
+    "twoFA": {
+      "secret": "JA6G2SJDM5GESM3CKJVTANRSNQ2D47KNOBJFOQRGG5ZX24LFEVDQ",
+      "enabled": true
+    }
+  },
+  {
+    "id": 12,
+    "username": "Leanna.Goyette",
+    "email": "f38e990c-b80f-4992-8f46-cf1bfc44649c@mailslurp.net",
+    "phone": "+13135137320",
+    "password": "OJvkUYJ82dAa",
+    "status": "passwordreset",
+    "resetToken": "ihzve7khpta"
+  },
+  {
+    "id": 13,
+    "username": "Forest.Hoeger88",
+    "email": "Wyman66@yahoo.com",
+    "phone": "+13135137320",
+    "password": "aZe6ZVd0YWAa",
+    "status": "active"
+  },
+  {
+    "id": 14,
+    "username": "Modesto.Hane",
+    "email": "b633de42-a974-45f2-9f2f-8e56ea3f131f@mailslurp.net",
+    "phone": "+13135137320",
+    "password": "0VzdSDnrApAa",
+    "status": "pending"
+  },
+  {
+    "id": 15,
+    "username": "Irwin97",
+    "email": "Clare.Runolfsdottir41@hotmail.com",
+    "phone": "+13135137320",
+    "password": "iuaTjQ7nYPAa",
+    "status": "active"
+  },
+  {
+    "id": 16,
+    "username": "Guiseppe.OHara53",
+    "email": "Roosevelt76@hotmail.com",
+    "phone": "+13135137320",
+    "password": "gb28iXl2PPAa",
+    "status": "active"
+  },
+  {
+    "id": 17,
+    "username": "Ida89",
+    "email": "Claudia_Jacobson50@yahoo.com",
+    "phone": "+13135137320",
+    "password": "S2pABuEEQdAa",
+    "status": "active"
+  },
+  {
+    "id": 18,
+    "username": "Enola75s",
+    "email": "Toby.Will@hotmail.com",
+    "phone": "131351373202",
+    "password": "mMQOic2lz3Aa",
+    "status": "active"
+  }
+]

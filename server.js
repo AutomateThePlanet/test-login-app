@@ -463,7 +463,7 @@ app.post('/verify-sms-code', (req, res) => {
     }
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { usernameOrEmail, password, rememberMe, captchaResponse, captchaBypass } = req.body;
 
     const user = users.find(u => (u.username === usernameOrEmail || u.email === usernameOrEmail) && u.password === password);  // NOTE: This is a simplistic way and not safe. In real scenarios, you'd want to hash and salt your passwords.
@@ -485,7 +485,6 @@ app.post('/login', (req, res) => {
 
         switch (user.status) {
             case 'active':
-                console.log('inside active switch case');
                 req.session.user = {
                     displayName: user.username,
                     provider: 'LOCAL'
@@ -497,43 +496,42 @@ app.post('/login', (req, res) => {
                     userId: user.id.toString(),
                 };
 
-                console.log('inside active switch case');
-
                 res.cookie('auth', generateHash(payload));
                 res.cookie('userId', user.id.toString());
 
                 if (rememberMe) {
-                    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;  // Set cookie expiration to 30 days
+                    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
                 } else {
-                    req.session.cookie.expires = false;  // Cookie will be removed when browser is closed
+                    req.session.cookie.expires = false;
                 }
 
-                if (captchaBypass != "10685832-cd90-4e91-9224-2ef69ce88f53") {
+                console.log('before captchaBypass');
+                if (captchaBypass !== "10685832-cd90-4e91-9224-2ef69ce88f53") {
                     console.log('START CAPTCHA VERIFICATION');
-        
+
                     if (!captchaResponse) {
+                        console.log('captchaResponse = ' + captchaResponse);
                         console.log("CAPTCHA not selected!");
-                        return res.json({"success": false, "msg": "CAPTCHA not selected!"});
+                        return res.json({ success: false, msg: "CAPTCHA not selected!" });
                     }
-        
-                    verifyCaptcha(captchaResponse)
-                    .then(captchaResult => {
+
+                    try {
+                        const captchaResult = await verifyCaptcha(captchaResponse);
                         if (!captchaResult.success) {
-                            console.log('CAPTCHA verification failed!');
-                            return res.json({"success": false, "msg": "CAPTCHA verification failed!"});
+                            return res.json({ success: false, msg: "CAPTCHA verification failed!" });
                         }
-                
+
                         console.log('CAPTCHA verified successfully!');
                         console.log('SUCCESSFULL LOGIN');
-                    })
-                    .catch(error => {
-                        console.error('Error verifying CAPTCHA:', error.message);
-                        return res.status(500).json({"success": false, "msg": "Server error during CAPTCHA verification"});
-                    });
 
-                    return res.json({ success: true, redirectUrl: '/profile' });
+                        return res.json({ success: true, redirectUrl: '/profile' });
+                    } catch (error) {
+                        console.error('Error verifying CAPTCHA:', error.message);
+                        return res.status(500).json({ success: false, msg: "Server error during CAPTCHA verification" });
+                    }
                 }
 
+                console.log('SUCCESSFULL LOGIN');
                 return res.json({ success: true, redirectUrl: '/profile' });
 
             case 'passwordreset':
@@ -565,12 +563,7 @@ function verifyCaptcha(captchaResponse) {
     return fetch(verificationURL, {
         method: 'POST'
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-    });
+    .then(response => response.json());
 }
 
 
@@ -871,9 +864,17 @@ app.post('/update-profile', (req, res) => {
     // Check if user ID exists in the cookie
     const userId = parseInt(req.cookies.userId, 10);
 
-    // Fetch user data
-    const user = users.find(u => u.id === userId);
+      // Find the user in the array
+      const userIndex = users.findIndex(u => u.id === userId);
 
+      if (userIndex === -1) {
+          return res.status(404).send('User not found');
+      }
+  
+      // Reference to the user object
+      let user = users[userIndex];
+
+    // Ensure the user exists
     if (!user) {
         return res.status(404).send('User not found');
     }
@@ -905,10 +906,12 @@ app.post('/update-profile', (req, res) => {
         user.password = password; // NOTE: In a real scenario, please hash and salt the password before storing!
     }
 
-    // Update user logic
+    // Update user details
     user.username = username;
     user.email = email;
     user.phone = phoneNumber;
+
+    users[userIndex] = user;
 
     res.send('Profile updated successfully');
 });
@@ -1000,13 +1003,19 @@ app.post('/activate', (req, res) => {
 });
 
 app.get('/2fa/status', (req, res) => {
-    const user = getUserFromSession(req); // implement this according to your session management
+    const user = getUserFromSession(req); // Assuming this retrieves the user based on session management
 
+    // Ensure user exists
     if (!user) {
-        return res.status(401).send({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    return res.send({ enabled: user.twoFA.enabled });
+    // Ensure the twoFA object exists before accessing its properties
+    if (user.twoFA && typeof user.twoFA.enabled !== 'undefined') {
+        return res.json({ enabled: user.twoFA.enabled });
+    } else {
+        return res.status(400).json({ error: 'Two-factor authentication status not available.' });
+    }
 });
 
 app.get('/2fa/initiate', (req, res) => {

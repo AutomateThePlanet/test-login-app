@@ -32,3 +32,25 @@ a:hover {
 .container {
     padding-top: 80px; /* Adjusts for the height of the navbar */
 }
+
+.navbar {
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.navbar-toggler {
+    padding: 0.25rem 0.75rem;
+}
+
+.nav-item {
+    margin-left: 10px;
+}
+
+.container.mt-5 {
+    margin-top: 4rem !important;
+}
