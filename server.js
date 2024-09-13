@@ -26,7 +26,7 @@ const DB_FILE = path.join(__dirname, 'db.json');
 
 dotenv.config();
 const app = express();
-
+const port = process.env.PORT || 3000; 
 const PORT = 3000;
 app.use(express.json());
 app.use(bodyParser.json());
@@ -1090,6 +1090,10 @@ const options = {
     cert: fs.readFileSync('certificate.pem'),
 };
 
-https.createServer(options, app).listen(3000, () => {
-    console.log('Server running on https://localhost:3000');
-});
+app.get('/', (req, res) => {
+    res.send('Hello from Node.js on Azure!');
+  });
+  
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
